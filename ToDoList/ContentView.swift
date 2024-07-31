@@ -6,10 +6,13 @@
 //
 
 import SwiftUI
+import SwiftData
 
 struct ContentView: View {
     @State private var showNewTask = false
     // links views, initially second view is not shown
+    @Query var toDos: [ToDoItem]
+    @Environment(\.modelContext) var modelContext
     
     var body: some View {
         VStack {
@@ -30,15 +33,32 @@ struct ContentView: View {
                 .foregroundColor(.green)
             }
             .padding()
-        Spacer()
+            Spacer()
+            List {
+                ForEach(toDos) { toDoItem in
+                    if toDoItem.isImportant == true {
+                        Text(toDoItem.title + "!!!")
+                    } else {
+                        Text(toDoItem.title)
+                    }
+                }
+                .onDelete(perform: deleteToDo)
+            }
+            if showNewTask {
+                NewToDoView(toDoItem: ToDoItem(title: "", isImportant: false), showNewTask: $showNewTask)
+            }
+            
         }
-        if showNewTask {
-            NewToDoView()
+    }
+    func deleteToDo(at offsets: IndexSet) {
+        for offset in offsets {
+            let toDoItem = toDos[offset]
+            modelContext.delete(toDoItem)
         }
-        
     }
 }
+    
+    #Preview {
+        ContentView()
+    }
 
-#Preview {
-    ContentView()
-}
